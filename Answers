@@ -1,0 +1,282 @@
+1.1)Now that we are familiar with what is 2PL and the basic rules which should be followed which ensures serializablity.
+Moreover we came across the problems with 2-PL, Cascading Aborts and Deadlocks. Now, we turn towards the enhancements made 
+on 2-PL which tries to make the protocol nearly error free. Briefly we allow some modifications to 2-PL to improve it. There 
+are three categories:
+1. Strict 2-PL -  deadlocks and free from Cascading Abort.
+2. Rigorous 2-PL - deadlocks and free from Cascading Abort
+3. Conservative 2-PL :
+   Conservative 2-PL is Deadlock free and but it does not ensure Strict schedule. However, it is difficult to use in practice 
+   because of need to predeclare the read-set and the write-set which is not possible in many situations. In      practice, the most 
+   popular variation of 2-PL is Strict 2-PL.
+Group commit : 
+Group commit processing is essential for achieving high throughput. If every transaction that reached the commit stage had to actually
+perform an I/O to the same disk to flush its own commit information, the throughput of the database system would be limited to the
+I/O rate of the disk. A magnetic disk is capable of performing 30 I/O operations per second. Consequently, in the absence of group
+commit, the throughput of the system is limited to30 transactions per second (TPS). Group commit is essential to breaking this 
+performance barrier. 
+
+1.2)Cascading roll back is the issue faced id the commit bit is not used in time-strap ordering protocol. 
+Cascading roll back: 
+A cascading rollback occurs in database systems when a transaction (T1) causes a failure and a rollback must be performed. 
+Other transactions dependent on T1's actions must also be rollbacked due to T1's failure, thus causing a cascading effect. 
+That is, one transaction's failure causes many to fail.How Commit bit helps: 
+Using the commit bit, a read request is made to wait if the transaction which wrote the data item has not yet committed.
+Therefore,if the writing transaction fails before commit, we can abort that transaction
+alone. The waiting read will then access the earlier version in case of a multiversion system, or the restored value of the data
+item after abort in case of a single-version system. For writes, this commit bit checking is
+unnecessary. That is because either the write is a “blind” write and thus independent of the old value of the data item or 
+there was a prior read, in which case the test was already applied.
+
+
+
+1.3)  Database systems usually perform crucial tasks whose effects need to be atomic and durable, and whose outcome affects  
+the real world in a permanent manner. Examples of such tasks are monetary transac- tions, seat bookings etc. Hence the ACID properties
+have to be ensured.
+contrast, most users of file systems would not be willing to pay the price (monetary, disk space, time) of supporting ACID properties. 
+
+1.4)Every conflict serializable schedule is view serializable, but not vice versa
+Conflict serializability is stricter than view serializability.They are same under the constrained write assumption. In this 
+assumption, every write of a data item xis constrained by the value of x it has read write(f(read(x))) With unconstrained writes 
+(blind writes), a schedule that is viewserializable is not necessarily conflict serializable. Blind writes: writes to a data item 
+without reading it.Every view serializable schedule that is not conflict serializable must have blind writes.
+Also, Conflict and view serializable schedules are restrictive in the sense that they aim to guarantee database consistency 
+without analyzing the result.
+
+Conflict and view serializable schedules are restrictive in the sense that they aim to guarantee database consistency without 
+analysing the result, A schedule S. result equivalent to a scheduleS0if it produces the same result asS0Consider 
+r1(A);A:=A-50;
+w1(A);r2(B);
+B:=B-10;w2(B);
+r1(B);B:=B+50;
+w1(B);
+r2(A);A:=A+10;w2(A);
+It produces the same result,  as the serial schedule 
+r1(A);
+A:=A-50;w1(A);
+r1(B);B:=B+50;
+w1(B);r2(B);
+B:=B-10;
+w2(B);
+r2(A);A:=A+10;w2(A);
+but is not conflict or view serializable. Determining such equivalence requires semantic analysis of operations other than read 
+and write.
+
+1.5)This rule states that a database must have a support for a language which has linear syntax which is capable of data
+definition, data manipulation and transaction management operations. Database can be accessed by means of this
+language only, either directly or by means of some application. If the database can be accessed or manipulated in
+some way without any help of this language, it is then a violation.
+
+1.6)This rule states that the logical data must be independent of its user’s view (application). Any change in logical data
+must not imply any change in the application using it. For example, if two tables are merged or one is split into two
+different tables, there should be no impact the change on user application. This is one of the most difficult rule to
+apply
+
+1.7)Records are stored in blocks of the disk and moved into  main memory. 
+The block header holds the following 
+
+
+
+
+1.8)Intra-operation parallelism – the process of speeding up a query through parallelizing the execution of individual operations.
+The operations which can be parallelized are Sort, Join, Projection, Selection and so on.
+Inter-operation parallelism – the process of speeding up a query through parallelizing various  operations which are
+part of the query. For example, a query which involves join of 4 tables can be executed in parallel in two processors in 
+such a way that each processor shall join two relations locally and the result1 and result2 can be joined further to produce 
+the final result.
+1.9)
+
+
+
+1.10)
+
+
+2)SQL2 standard does not assume that  every transaction runs in a serializable manner Serializable-level is the highest isolation level
+Problems
+Dirty read problem: reading uncommitted data UnRepeatable read problem: Successive reads get a different values
+Phantom problem: Successive reads get additional tuples (not different values).
+Strict locking
+Do not release any locks until the transaction has committed or aborted, and commit or abort record is flushed to disk. 
+If a failure occurs after flushing the commit, the recovery manager commits the transaction.
+Recoverable schedules
+A schedule of transactions that obey the strict locking rule is called recoverable. In a recoverable schedule, it is not possible 
+for a transaction to read dirty data.
+If the lockable elements are blocks,  no need of using the disk. Pin the uncommitted writes in the main memory
+If the transaction aborts, ignore the value. No other transaction reads the data as it is already locked.
+ If the lockable elements are tuples, the above mechanism does not work.Buffer may contain the changes made by more than one transaction.
+Options
+Read the original value of A from disk Obtain former value from the log itself Maintain a separate main memory log for the active transactions  
+
+3)Records will be inserted, deleted and sometimes updated.
+As a result the sequential file will evolve. Create overflow blocks.Do not have entries in sparse index
+Insert new blocks in the sequential order.New block needs an entry in the sparse index.If there is no space, slide tuples to  
+adjacent blocks.There will be changes into index
+The operator sort-scan takes a relation R  and a specification of attributes on which the sort is to be made, and produces R 
+in that sorted order.
+Ways to implement  sort-scan
+If we are to produce a relation R sorted by attribute “a”,  and there is a Btree index on “a”, simple scan produces sorted file.
+If R fits in main memory, we can retrieve tuples using index scan or table scan  and use main memory sorting algorithms.
+If R is too large to fit in main memory, follow multi-way merging approach. 
+Measures associated with the disk Rotation speed of disk assembly 5400 RPM, one rotation for every 11 msec.
+Number of platters per unit Typical disk has four to five platters Number of tracks per surface A surface may have 10,000 tracks
+
+4)
+
+
+
+
+
+
+
+
+5)
+Interactions among the transactions can cause the database state inconsistent. Each transaction Individually ensures consistent state 
+with no system failure. When several transactions are processed in parallel, inconsistency may occur. Needs regulation Scheduler 
+controls  the accesses Scheduler is a protocol to design a protocol 
+Correctness principle Every serial schedule ensures the correctness. Are there other schedules which preserve the consistency 
+These are called serializable schedules which are equivalent to a serial schedule
+An action is ri(X) or wi(X)
+Ti is a sequence of actions with subscript “i”.
+A schedule S  of a set of transactions T is a sequence of actions, in which for each Ti in T, the actions of Ti appear in S in the
+same order as in the definition of “Ti” itself.
+Sc=r1(A); w1(A); r2(A); w2(A); r1(B); w1(B); r2(B); w2(B);
+Scheduler ensures that schedules are serializable by ensuring a condition conflict-serializability.
+It is based on the idea of conflict
+Conflict: Let Ti and Tj are transactions
+ri(X); rj(Y) is never conflict even X=Y as they do not change any value
+ri(X); wj(Y) is not a conflict provided that X≠Y.
+wi(X); rj(Y) is not a conflict if X≠Y.
+Wi(X); wj(Y) is not a conflict if X≠Y
+
+The actions of the same transaction conflict.; ri(X); wi(Y) conflict; order is fixed by a transaction. DBMS can not reorder!
+Two writes of different transaction on the same element conflict: wi(X), wj(X) conflict.
+Read and write of the same database element by different transactions also conflict. ri(X); wj(X) conflict. Also, wi(X) 
+and ri(X) conflict.
+Two actions of different transactions may be swapped unless
+They involve the same database element, and
+at least one of them is write.
+Carry out the non conflicting swaps and try to convert the schedule into a serial schedule.
+Conflict-equivalent
+Two schedules are conflict equivalent if they can be turned one into other by a sequence of non-conflicting swaps of 
+ADJACENT ACTIONS.
+Conflict serializable
+If a schedule is conflict equivalent to a serial schedule.
+Conflict serializable schedule is a serializable schedule.
+Note:
+Conflict serializability is not required for a schedule to be serializable.
+But many commercial system use serializability criteria to guarantee serializabilty
+
+6)NoSQL is a type of database management system that emphasizes high availability, scalability, and high performance. According to
+CAP theorem, it is impossible to guarantee all three of the desirable properties at the same time in a distributed system with
+data replication. NoSQL is one approach where a weaker consistency level is often
+accepted to guarantee the other two properties. In practice, a form of consistency known as eventual consistency is often adopted in
+NoSQL systems. However, some NoSQL databases adopt extra approaches and techniques to make the database comply with ACID model
+Scalability: In NoSQL systems, horizontal scalability is generally used to achieve scalability. Horizontal scalability refers to
+expanding the system by adding more nodes for data storage and processing as the volume of data grows.
+To accomplish this, data is replicated over many nodes, so as to ensure data availability even if some nodes fail.
+Performance: In many NoSQL applications, it is necessary to find individual records from millions of data records. To achieve high
+performance, two techniques are frequently used in NoSQL systems, called hashing and range partitioning on keys.
+Consistency:The eventual consistency is usually applied and then realized by two different replication models, called master-slave
+and master-master replication. Master-slave model has better consistency and master-master model has better accessibility
+
+
+7)If you are operating your standby database in managed recovery mode, you can keep your standby database synchronized with your 
+source database by automatically applying transmitted archived redo logs.
+To transmit files successfully to a standby database, either ARCn or a server process must do the following:
+Recognize a remote location
+Transmit the archived logs in conjunction with a remote file server (RFS) process that resides on the remote server
+Each ARCn process has a corresponding RFS for each standby destination. For example, if three ARCn processes are archiving to 
+two standby databases, then Oracle Database establishes six RFS connections.
+You transmit archived logs through a network to a remote location by using Oracle Net Services. Indicate a remote archival by 
+specifying a Oracle Net service name as an attribute of the destination. Oracle Database then translates the service name, 
+through the tnsnames.ora file, to a connect descriptor. The descriptor contains the information necessary for connecting to 
+the remote database. The service name must have an associated database SID, so that the database correctly updates the log history 
+of the control file for the standby database.
+The RFS process, which runs on the destination node, acts as a network server to the ARCn client. Essentially, ARCn pushes 
+information to RFS, which transmits it to the standby database.
+The RFS process, which is required when archiving to a remote destination, is responsible for the following tasks:
+Consuming network I/O from the ARCn process
+Creating file names on the standby database by using the STANDBY_ARCHIVE_DEST parameter
+Populating the log files at the remote site
+Updating the standby database control file (which Recovery Manager can then use for recovery)
+Archived redo logs are integral to maintaining a standby database, which is an exact replica of a database. You can operate your database in standby archiving mode, which automatically updates a standby database with archived redo logs from the original database.
+
+8)CAP theorem
+It is very important to understand the limitations of NoSQL database. NoSQL can not provide consistency and high availability together. 
+This was first expressed by Eric Brewer in CAP Theorem.
+CAP theorem or Eric Brewers theorem states that we can only achieve at most two out of three guarantees for a database Consistency, 
+Availability and Partition Tolerance.
+Here Consistency means that all nodes in the network see the same data at the same data. Or a reader gets most recently written data.
+Availability is a guarantee that every request receives a response about whether it was successful or failed. The more number of users
+a system can cater to better is the availability.
+Partition Tolerance is a guarantee that the system continues to operate despite arbitrary message loss or failure of part of the system
+In other words, even if there is a network outage in the data center and some of the computers are unreachable, still the system 
+continues to perform.
+Out of these three guarantees, no system can provide more than 2 guarantees. Since in the case of a distributed systems, the partitioning
+of the network is must, the tradeoff is always between consistency and availability.
+As depicted in the Venn diagram, RDBMS can provide only consistency but not partition tolerance. While MongoDB, HBASE and Redis can provide
+Consistency and Partition tolerance. And CouchDB, Cassandra and Dynamo guarantee only availability but no consistency. Such databases 
+generally settle down for eventual consistency meaning that after a while the system is going to be ok.
+The first one is RDBMs where Reading and writing of data happens on the same machine. Such systems are consistent but not partition
+tolerant because if this machine goes down, there is no backup. Also, if one user is modifying the record, others would have to wait thus
+compromising the high availability.
+Such systems are highly available as there are multiple machines to serve. Also, such systems are partition tolerant because if one
+machine goes down, there are other machines available to take up that responsibility. Since it takes time for the data to reach other
+machines from the node A, the other machine would be serving older data. This causes inconsistency. Though the data is eventually
+going to reach all machine and after a while, things are going to okay. There we call such systems eventually consistent instead
+of strongly consistent. This kind of architecture is found in Zookeeper and MongoDB.
+ Every new change or modification at A in the diagram is propagated to the backup machine B. There is only one machine which i
+ interacting with the readers and writers. So, It is consistent but not highly available. If A goes down,B can take A's place.
+ Therefore this system is partition tolerant.
+
+9)i)Retrieve all the records with search key consists of values from multiple attributes.
+Search key is (F1, F2, ..Fk)
+Separated by special markers.
+Example
+If F1=abcd  and F2=123, the search key is “abcd#123”
+Indexes on sequential files and Btrees both take advantage of having the keys in sorted order.
+Hash table requires that each key should be known for any lookup
+Number of applications require query support for two or n dimensional space.
+Rectangles(id, x11, y11, xur, yur)
+If the query is 
+Find the rectangles enclosing the point (10,20)
+ii)SELECT id
+	FROM Rectangles
+	WHERE x11 <= 10.0 AND y11 <= 20.0 AND xur >=10.0 AND yur >=20.0;
+Fact table
+Sales(day,store, item. color, size)
+Query
+Summarize the sale of pink shirts by day and store
+SELECT day, store, COUNT(*) AS totalSales
+    FROM Sales
+   WHERE item=‘shirt’ AND color=‘pink’
+   GROUP BY  day, store;
+   
+   
+   
+10)The dense index supports queries that ask for records with a given search key value.
+The index-based search is efficient
+Number of index blocks is usually small compared with the number of data blocks
+We can use binary search log2n of them
+The index is small enough to be kept permanently in main memory buffers. 
+So requires only main memory accesses
+If a dense index is too large, we can use similar structure  called a sparse index
+Uses less space but requires some more time to find a record.
+A sparse index holds only one key-pointer to the first record on the block 
+So far, search key is the key of the relation.
+Indexes can be used on non-key attributes.
+More than one record has the same key value
+Have a dense index with one entry with key K for each record of the data file that has search key K.
+∏L(R) projection R in list L.
+L can have the following elements
+An expression xy, where x and y are names for attributes.
+An expression Ez, where E is an expression involving attributes of R, constants, arithmetic operators and string operators and z is a new names of the attribute.
+We use the operator  τ to sort a relation
+SQL ORDER BY
+τL(R), L is a list of attributes (a1, a2,…, an)
+Ties are broken as per a2…
+They agree till “an”, the tuples are sorted arbitrarily.
+Default is ascending order, can be changed using DESC
+The result is list of tuples. So it is he last operator.
+If this operator is applied, the notion of set is disturbed. 
+
+
